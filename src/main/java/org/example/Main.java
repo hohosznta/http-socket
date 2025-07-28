@@ -25,9 +25,8 @@ public class Main {
 
                     HttpRequest httpRequestDto = new HttpRequest(requestData); // 데이터 분석하여 객체로 바꿈
                     Dispatcher dispatcher = new Dispatcher();
-                    HttpHandler httpHandler = dispatcher.dispatch(httpRequestDto); //요청 경로에 따라 어떤 핸들러 쓸 건지 셜정
-                    HttpResponse httpResponseDto = httpHandler.handle(); //요청 처리해서 응답 만들기
-                    out.write(httpResponseDto.getResponseData().getBytes()); //응답 클라이언트에게 보내기 (문자열을 바이트로 반환해서 전송0
+                    HttpResponse response = dispatcher.dispatch(httpRequestDto); //요청 경로에 따라 어떤 핸들러 쓸 건지 셜정
+                    out.write(response.getResponseData().getBytes()); //응답 클라이언트에게 보내기 (문자열을 바이트로 반환해서 전송0
                 } catch (Exception e) {
                     e.printStackTrace();
                 } finally {

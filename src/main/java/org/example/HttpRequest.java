@@ -3,18 +3,16 @@ package org.example;
 public class HttpRequest {
     private final String method;
     private final String path;
+    private final String body; // 추가
 
-    public HttpRequest(String requestLine) {
-        // 예: GET /hello HTTP/1.1
+    public HttpRequest(String requestLine, String body) {
         String[] parts = requestLine.split(" ");
-        if (parts.length >= 2) {
-            this.method = parts[0];
-            this.path = parts[1];
-        } else {
-            this.method = "GET";
-            this.path = "/";
-        }
+        this.method = parts.length >= 2 ? parts[0] : "GET";
+        this.path = parts.length >= 2 ? parts[1] : "/";
+        this.body = body;
     }
+
+    public String getBody() {return body;}
 
     public String getMethod() {
         return method;

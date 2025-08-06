@@ -4,13 +4,14 @@ import org.example.HttpResponse;
 import org.example.annotation.*;
 import org.example.controller.request.HelloRequest;
 import org.example.service.HelloService;
+import org.example.service.ServiceMarker;
 
 @Component
 public class HelloController implements ControllerMarker{
 
-    private final HelloService helloService;
+    private final ServiceMarker helloService;
 
-    public HelloController(HelloService helloService) {
+    public HelloController(ServiceMarker helloService) {
         this.helloService = helloService;
     }
 

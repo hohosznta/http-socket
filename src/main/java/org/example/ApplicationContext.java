@@ -7,6 +7,8 @@ import java.lang.reflect.Type;
 import java.util.*;
 
 import org.example.annotation.Component;
+import org.example.annotation.Transactional;
+import org.example.proxy.ProxyFactory;
 import org.reflections.Reflections;
 
 public class ApplicationContext {
@@ -18,10 +20,16 @@ public class ApplicationContext {
         Set<Class<?>> components = new HashSet<>();
         components.addAll(reflections.getTypesAnnotatedWith(Component.class));
 
-        // 1단계: 모든 빈 정의만 먼저 등록 (실제 인스턴스 생성 X)
+        // 1단계: 모든 빈 정의만 먼저 등록 (실제 인스턴스 생성 X) 어떤 클래스가 Bean인지 등록
         for (Class<?> clazz : components) {
             beanDefinitions.put(clazz, clazz);
+
+            // 이 클래스가 구현한 인터페이스도 등록
+            for (Class<?> iface : clazz.getInterfaces()) {
+                beanDefinitions.put(iface, clazz);
+            }
         }
+
 
         // 2단계: 모든 빈 정의가 등록된 후에 빈들을 생성 (만약 1단계2단계 동시에 하면 재귀적인 연관관계를 찾지 못함)
         for (Class<?> clazz : components) {
@@ -31,7 +39,8 @@ public class ApplicationContext {
 
     public <T> T getBean(Class<T> requiredType) {
         try {
-            return requiredType.cast(createBean(requiredType)); //createBean(requiredType)을 호출해서 객체 생성 후, requiredType으로 캐스팅해서 반환
+            Object bean = createBean(requiredType);
+            return requiredType.cast(bean);
         } catch (Exception e) {
             throw new RuntimeException("Bean 생성 실패: " + requiredType.getName(), e);
         }
@@ -46,7 +55,7 @@ public class ApplicationContext {
 
         Constructor<?> selected = Arrays.stream(implType.getDeclaredConstructors())
                 .max(Comparator.comparingInt(Constructor::getParameterCount))
-                .orElseThrow(() -> new RuntimeException("생성자 없음: " + implType.getName()));
+                .orElseThrow(() -> new RuntimeException("생성자 없음: " + implType.getName())); //여기서는 가장 많은 파라미터 가진 생성자 하나 선택, 스프링은 @autowired로 명시 해줘야 함
 
         Parameter[] params = selected.getParameters();
         Object[] dependencies = new Object[params.length];
@@ -76,8 +85,25 @@ public class ApplicationContext {
         }
 
         Object instance = selected.newInstance(dependencies);//모든 의존성이 준비되면 객체를 생성하고 저장
-        singletonObjects.put(type, instance);
+
+        //트랜잭션 어노테이션이 클래스나 메서드에 붙은 경우 프록시 생성
+        if (needsTransactionalProxy(implType)) {
+            Class<?>[] interfaces = implType.getInterfaces();
+            if (interfaces.length > 0) {
+                // 인터페이스 타입으로도 프록시 저장
+                Object proxy = ProxyFactory.createProxy(interfaces[0], instance);
+                singletonObjects.put(interfaces[0], proxy);
+            }
+        }else{
+            singletonObjects.put(type, instance);
+        }
         return instance;
+    }
+    
+    private boolean needsTransactionalProxy(Class<?> clazz) {
+        // 메서드 중 하나라도 @Transactional이 있으면 true
+        return Arrays.stream(clazz.getDeclaredMethods())
+                .anyMatch(method -> method.isAnnotationPresent(Transactional.class));
     }
 }
 

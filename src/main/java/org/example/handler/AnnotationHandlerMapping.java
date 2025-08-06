@@ -4,6 +4,7 @@ import org.example.HttpRequest;
 import org.example.annotation.Component;
 import org.example.annotation.Post;
 import org.example.controller.ControllerMarker;
+import org.example.service.ServiceMarker;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -25,7 +26,7 @@ public class AnnotationHandlerMapping {
 
     private final Map<String, HandlerMethod> handlerMap = new HashMap<>();
 
-    public AnnotationHandlerMapping(List<ControllerMarker> controllers) {
+    public AnnotationHandlerMapping(List<ControllerMarker> controllers, List<ServiceMarker> services) {
         for (Object controller : controllers) {
             Class<?> clazz = controller.getClass();
 

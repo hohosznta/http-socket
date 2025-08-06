@@ -3,6 +3,7 @@ package org.example.handler;
 import org.example.HttpRequest;
 import org.example.HttpResponse;
 import org.example.ReflectionJsonParser;
+import org.example.annotation.Component;
 import org.example.annotation.RequestBody;
 import org.example.annotation.RequestHeader;
 import org.example.annotation.RequestParam;
@@ -10,14 +11,13 @@ import org.example.annotation.RequestParam;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 
-public class AnnotationHandlerAdapter implements HandlerAdapter {
+@Component
+public class AnnotationHandlerAdapter {
 
-    @Override
     public boolean supports(Object handler) {
         return handler instanceof AnnotationHandlerMapping.HandlerMethod;
     }
 
-    @Override
     public HttpResponse handle(HttpRequest request, Object handler) {
         AnnotationHandlerMapping.HandlerMethod handlerMethod = (AnnotationHandlerMapping.HandlerMethod) handler;
         Method method = handlerMethod.method;

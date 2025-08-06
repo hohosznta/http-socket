@@ -1,13 +1,19 @@
 package org.example.controller;
 
 import org.example.HttpResponse;
-import org.example.annotation.Post;
-import org.example.annotation.RequestBody;
-import org.example.annotation.RequestHeader;
-import org.example.annotation.RequestParam;
+import org.example.annotation.*;
 import org.example.controller.request.HelloRequest;
+import org.example.service.HelloService;
 
-public class HelloController {
+@Component
+public class HelloController implements ControllerMarker{
+
+    private final HelloService helloService;
+
+    public HelloController(HelloService helloService) {
+        this.helloService = helloService;
+    }
+
     @Post("/hello")
     public HttpResponse hello(
             @RequestParam("age") int age,
@@ -15,8 +21,8 @@ public class HelloController {
             @RequestHeader("X-Auth-Token") String token
     ) {
         System.out.println(token);
-        return new HttpResponse("Hello " + request.name + ", age: " + age + ", token: " + token);
+        String result = helloService.add(request.name, token);
+        return new HttpResponse("Hello " + request.name + ", age: " + age + ", result: " + result);
     }
-
 }
 

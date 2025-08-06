@@ -1,16 +1,19 @@
 package org.example.handler;
 
 import org.example.HttpRequest;
+import org.example.annotation.Component;
 import org.example.annotation.Post;
+import org.example.controller.ControllerMarker;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class AnnotationHandlerMapping implements HandlerMapping {
+@Component
+public class AnnotationHandlerMapping {
 
-    static class HandlerMethod {
+    static class HandlerMethod { //바깥 클래스 의존을 하지 않으니 static 사용함.
         final Object controller;
         final Method method;
 
@@ -22,9 +25,10 @@ public class AnnotationHandlerMapping implements HandlerMapping {
 
     private final Map<String, HandlerMethod> handlerMap = new HashMap<>();
 
-    public AnnotationHandlerMapping(List<Object> controllers) { //컨트롤러 리스트를 받아
+    public AnnotationHandlerMapping(List<ControllerMarker> controllers) {
         for (Object controller : controllers) {
             Class<?> clazz = controller.getClass();
+
             for (Method method : clazz.getDeclaredMethods()) { //클래스 내부의 메소드를 모두 순회하여
                 if (method.isAnnotationPresent(Post.class)) { //@Post 어노테이션이 붙은 메서드를 찾음
                     String path = method.getAnnotation(Post.class).value();
@@ -36,9 +40,10 @@ public class AnnotationHandlerMapping implements HandlerMapping {
         }
     }
 
-    @Override
     public Object getHandler(HttpRequest request) {
+
         String key = request.getMethod() + " " + request.getPath(); //키를 만들고
+        System.out.println("key"+ key);
         return handlerMap.get(key); //handlerMap에서 찾아서 HandlerMethod 반환
     }
 }
